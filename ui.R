@@ -2,9 +2,10 @@ library(shiny)
 library(leaflet)
 library(shinythemes)
 library(RColorBrewer)
+library(readxl)
 
 ### Read in data ###
-schools <- read_excel("C:/Users/jjones6/Desktop/healthData/healthData/data/data.xlsx")
+schools <- read_excel("C:/Users/jjones6/Desktop/healthData/healthData/healthDataShiny/data/data.xlsx")
 
 vars <- c(colnames(schools[6:16]))
 
@@ -34,8 +35,8 @@ shinyUI(fluidPage( theme=shinytheme("darkly"),
     
     # Show a plot of the generated distribution
     mainPanel(
-      leafletOutput("map", height = 500),
-      DT::dataTableOutput('dataTable')
+      leafletOutput("map"),
+      plotOutput("chart")
     )
   )
 ))

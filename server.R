@@ -3,13 +3,15 @@ library(RColorBrewer)
 library(leaflet)
 library(readxl)
 library(DT)
+library(htmltools)
+library(ggplot2)
 
 
 ### Define server logic ###
 shinyServer(function(input, output) {
   
   ### Read in data ###
-  schools <- read_excel("C:/Users/jjones6/Desktop/healthData/healthData/data/data.xlsx")
+  schools <- read_excel("C:/Users/jjones6/Desktop/healthData/healthData/healthDataShiny/data/data.xlsx")
   
   ### Subset data based on school type input ###
   schoolsFilter <- reactive({
@@ -31,7 +33,7 @@ shinyServer(function(input, output) {
       
       ### Add school markers ###    
       addCircleMarkers(lng=schools$Long,
-                       lat=schools$Lat)
+                 lat=schools$Lat)
     
   })
 
@@ -39,7 +41,7 @@ shinyServer(function(input, output) {
   observe({
     colorBy <- input$selectVariable
     
-    colorData <- schools[[colorBy]]
+    colorData <- schoolsFilter()[[colorBy]]
     pal <- colorBin("BuPu", colorData, 7, pretty = TRUE)
     
     leafletProxy("map", data = schoolsFilter()) %>%
@@ -48,13 +50,28 @@ shinyServer(function(input, output) {
                   addCircleMarkers(lng=schoolsFilter()$Long,
                                    lat=schoolsFilter()$Lat,
                                    stroke=FALSE,
-                                   fillOpacity = 0.4,
-                                   fillColor = pal(colorData)) %>%
+                                   fillOpacity = 1,
+                                   fillColor = pal(colorData),
+                                   label = paste(sep=" - ", schoolsFilter()$School, paste(colorBy,": ",schoolsFilter()[[colorBy]] ))) %>%
+      ### Add Reactive Legend ###
       addLegend("bottomleft",
                 pal=pal,
                 values=colorData,
                 title=colorBy,
                 layerId="legend")
+  })
+  
+  observe({
+    chartBy <- input$selectVariable
+    chartData <-  schoolsFilter()[[chartBy]]
+    
+    output$chart <- renderPlot(ggplot(schoolsFilter(), aes(x = reorder(School, -chartData), y = chartData, fill=School)) + 
+                                 geom_bar(stat="identity") + 
+                                 xlab("School") +
+                                 ylab(chartBy) +
+                                 theme(legend.position="none") + 
+                                 theme(text=element_text(size=16, family="Tahoma")) + 
+                                 ggtitle(chartBy))
   })
   
 ### End Server Function ###  

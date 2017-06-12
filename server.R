@@ -5,6 +5,7 @@ library(readxl)
 library(DT)
 library(htmltools)
 library(ggplot2)
+library(plotly)
 
 
 ### Define server logic ###
@@ -65,13 +66,8 @@ shinyServer(function(input, output) {
     chartBy <- input$selectVariable
     chartData <-  schoolsFilter()[[chartBy]]
     
-    output$chart <- renderPlot(ggplot(schoolsFilter(), aes(x = reorder(School, -chartData), y = chartData, fill=School)) + 
-                                 geom_bar(stat="identity") + 
-                                 xlab("School") +
-                                 ylab(chartBy) +
-                                 theme(legend.position="none") + 
-                                 theme(text=element_text(size=16, family="Tahoma")) + 
-                                 ggtitle(chartBy))
+    output$chart <- renderPlotly(plot_ly(data = schoolsFilter(), x=~School, y=~chartData))
+    output$scat <- renderPlotly(plot_ly(data = schoolsFilter(), x=schoolsFilter()$`Number of Identified Health Condition`, y=~chartData))
   })
   
 ### End Server Function ###  
